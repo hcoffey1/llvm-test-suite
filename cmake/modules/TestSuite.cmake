@@ -44,29 +44,52 @@ function(llvm_test_data target)
   endforeach()
 endfunction()
 
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};/media/hdd0/research/shared/customPass/llvm-ir-cmake-utils/cmake/")
+include(LLVMIRUtil)
+
+set(TOOL_LIB_PATH /media/hdd0/research/shared/customPass/bin/tool.so)
+set(TOOL_RUNTIME_PATH /media/hdd0/research/shared/customPass/bin/tool_dyn.ll)
+
 function(llvm_test_executable_no_test target)
-  add_executable(${target} ${ARGN})
-  append_target_flags(COMPILE_FLAGS ${target} ${CFLAGS})
-  append_target_flags(COMPILE_FLAGS ${target} ${CPPFLAGS})
-  append_target_flags(COMPILE_FLAGS ${target} ${CXXFLAGS})
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fxray-instrument -Xclang -disable-O0-optnone")
+
+  add_executable(_${target} ${ARGN})
+  target_compile_options(_${target} PUBLIC ${CFLAGS})
+  target_compile_options(_${target} PUBLIC ${CPPFLAGS})
+  target_compile_options(_${target} PUBLIC ${CXXFLAGS})
   # Note that we cannot use target_link_libraries() here because that one
   # only interprets inputs starting with '-' as flags.
-  append_target_flags(LINK_LIBRARIES ${target} ${LDFLAGS})
-  set(target_path ${CMAKE_CURRENT_BINARY_DIR}/${target})
+  append_target_flags(LINK_LIBRARIES _${target} ${LDFLAGS})
+  set(target_path ${CMAKE_CURRENT_BINARY_DIR}/_${target})
   if(TEST_SUITE_PROFILE_USE)
-    append_target_flags(COMPILE_FLAGS ${target} -fprofile-instr-use=${target_path}.profdata)
-    append_target_flags(LINK_LIBRARIES ${target} -fprofile-instr-use=${target_path}.profdata)
+    append_target_flags(COMPILE_FLAGS _${target} -fprofile-instr-use=${target_path}.profdata)
+    append_target_flags(LINK_LIBRARIES _${target} -fprofile-instr-use=${target_path}.profdata)
   endif()
 
-  llvm_codesign(${target})
-  set_property(GLOBAL APPEND PROPERTY TEST_SUITE_TARGETS ${target})
-  test_suite_add_build_dependencies(${target})
+  llvm_codesign(_${target})
+  set_property(GLOBAL APPEND PROPERTY TEST_SUITE_TARGETS _${target})
+  test_suite_add_build_dependencies(_${target})
 
   if(TEST_SUITE_LLVM_SIZE)
-    add_custom_command(TARGET ${target} POST_BUILD
-      COMMAND ${TEST_SUITE_LLVM_SIZE} --format=sysv $<TARGET_FILE:${target}>
-      > $<TARGET_FILE:${target}>.size)
+    add_custom_command(TARGET _${target} POST_BUILD
+      COMMAND ${TEST_SUITE_LLVM_SIZE} --format=sysv $<TARGET_FILE:_${target}>
+      > $<TARGET_FILE:_${target}>.size)
   endif()
+    
+  #LLVM IR generation and pass
+  set_target_properties(_${target} PROPERTIES LINKER_LANGUAGE CXX EXCLUDE_FROM_ALL ON)
+  llvmir_attach_bc_target(${target}_bc _${target})
+
+  custom_ir_pass(${target}_pass ${target}_bc)
+  custom_ir_link(${target}_link ${target}_pass)
+
+  llvmir_attach_executable(${target} ${target}_link)
+  add_dependencies(${target} ${target}_link)
+
+  append_target_flags(LINK_LIBRARIES ${target} "-fxray-instrument")
+
+  add_custom_target(${target}_pipeline DEPENDS ${target})
+  set_property(TARGET ${target}_pipeline PROPERTY EXCLUDE_FROM_ALL OFF)
 endfunction()
 
 # Creates a new executable build target. Use this instead of `add_executable`.

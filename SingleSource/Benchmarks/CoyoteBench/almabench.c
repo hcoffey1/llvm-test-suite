@@ -263,7 +263,8 @@ void planetpv (double epoch[2], int np, double pv[2][3])
     am = dl - dp;
     ae = am + de * sin(am);
     k  = 0;
-
+    
+#pragma begin_instrument 10
     while (1)
     {
         dae = (am - ae + de * sin(ae)) / (1.0 - de * cos(ae));
@@ -273,6 +274,7 @@ void planetpv (double epoch[2], int np, double pv[2][3])
         if ((k >= 10) || (fabs(dae) < 1e-12))
             break;
     }
+#pragma end_instrument
 
     // true anomaly.
     ae2 = ae / 2.0;
