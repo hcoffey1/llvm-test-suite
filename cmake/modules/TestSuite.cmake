@@ -92,6 +92,33 @@ function(llvm_test_executable_no_test target)
   set_property(TARGET ${target}_pipeline PROPERTY EXCLUDE_FROM_ALL OFF)
 endfunction()
 
+#function(llvm_test_executable_no_test target)
+#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fxray-instrument -Xclang -disable-O0-optnone")
+#
+#  add_executable(${target} ${ARGN})
+#  target_compile_options(${target} PUBLIC ${CFLAGS})
+#  target_compile_options(${target} PUBLIC ${CPPFLAGS})
+#  target_compile_options(${target} PUBLIC ${CXXFLAGS})
+#  # Note that we cannot use target_link_libraries() here because that one
+#  # only interprets inputs starting with '-' as flags.
+#  append_target_flags(LINK_LIBRARIES ${target} ${LDFLAGS})
+#  set(target_path ${CMAKE_CURRENT_BINARY_DIR}/${target})
+#  if(TEST_SUITE_PROFILE_USE)
+#    append_target_flags(COMPILE_FLAGS ${target} -fprofile-instr-use=${target_path}.profdata)
+#    append_target_flags(LINK_LIBRARIES ${target} -fprofile-instr-use=${target_path}.profdata)
+#  endif()
+#
+#  llvm_codesign(_${target})
+#  set_property(GLOBAL APPEND PROPERTY TEST_SUITE_TARGETS ${target})
+#  test_suite_add_build_dependencies(${target})
+#
+#  if(TEST_SUITE_LLVM_SIZE)
+#    add_custom_command(TARGET ${target} POST_BUILD
+#      COMMAND ${TEST_SUITE_LLVM_SIZE} --format=sysv $<TARGET_FILE:${target}>
+#      > $<TARGET_FILE:${target}>.size)
+#  endif()
+#endfunction()
+
 # Creates a new executable build target. Use this instead of `add_executable`.
 # It applies CFLAGS, CPPFLAGS, CXXFLAGS and LDFLAGS. Creates a .test file if
 # necessary, registers the target with the TEST_SUITE_TARGETS list and makes

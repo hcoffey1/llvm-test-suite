@@ -105,7 +105,7 @@ endmacro()
 # The file contents come from previous llvm_test_XXX() calls.
 function(llvm_add_test testfile executable)
   # Replace $EXECUTABLE$ placeholder.
-  string(REPLACE "$EXECUTABLE$" "${executable}" TESTSCRIPT "${TESTSCRIPT}")
+  string(REPLACE "$EXECUTABLE$" "XRAY_OPTIONS=\"patch_premain=true\" ${executable}" TESTSCRIPT "${TESTSCRIPT}")
 
   # Produce .test file
   file(GENERATE OUTPUT ${testfile} CONTENT "${TESTSCRIPT}")
@@ -114,6 +114,6 @@ function(llvm_add_test testfile executable)
 endfunction()
 
 function(llvm_add_test_for_target target)
-  llvm_add_test($<TARGET_FILE:${target}>.test %S/$<TARGET_FILE_NAME:${target}>)
+    llvm_add_test($<TARGET_FILE:${target}>.test %S/$<TARGET_FILE_NAME:${target}>)
   set(TESTSCRIPT "" PARENT_SCOPE)
 endfunction()
