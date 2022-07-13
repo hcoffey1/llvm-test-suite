@@ -135,6 +135,7 @@ static void heap_adjust(size_t * freq, size_t * heap, int n, int k)
 // Huffman compression/decompression function
 void compdecomp(byte * data, size_t data_len)
 {
+#pragma begin_instrument 2
     size_t i, j, n, mask;
     bits32 k, t;
     byte   c;
@@ -429,10 +430,12 @@ void compdecomp(byte * data, size_t data_len)
     
     // remove work areas
     free(comp);
+#pragma end_instrument
 }
 
 int main(int argc, char ** argv)
 {
+#pragma begin_instrument 1
     int i;
     
     // do we have verbose output?
@@ -488,6 +491,7 @@ int main(int argc, char ** argv)
     
     fflush(stdout);
     
+#pragma end_instrument
     // done
     return 0;
 }

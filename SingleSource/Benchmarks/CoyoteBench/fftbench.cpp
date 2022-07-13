@@ -496,6 +496,7 @@ polynomial< complex<T> > polynomial<T>::bit_reverse(const polynomial< complex<T>
 template <typename T>
 polynomial< complex<T> > polynomial<T>::fft(const polynomial<T> & poly)
 {
+//#pragma begin_instrument 30
     size_t nl = log2(poly.degree());
     size_t j, k, m, m2, s;
     complex<T> wm, w, t, u;
@@ -526,7 +527,8 @@ polynomial< complex<T> > polynomial<T>::fft(const polynomial<T> & poly)
         m  <<= 1;
         m2 <<= 1;
     }
-
+    
+//#pragma end_instrument
     return result;
 }
 
@@ -534,6 +536,7 @@ polynomial< complex<T> > polynomial<T>::fft(const polynomial<T> & poly)
 template <typename T>
 polynomial< complex<T> > polynomial<T>::inverse_fft(const polynomial< complex<T> > & poly)
 {
+//#pragma begin_instrument 20
     size_t nl = log2(poly.degree());
     size_t j, k, m, m2, s;
     complex<T> wm, w, t, u;
@@ -567,7 +570,7 @@ polynomial< complex<T> > polynomial<T>::inverse_fft(const polynomial< complex<T>
 
     for (j = 0; j < poly.degree(); ++j)
         result[j] /= double(poly.degree());
-
+//#pragma end_instrument
     return result;
 }
 
@@ -653,6 +656,7 @@ polynomial<T> & polynomial<T>::operator *= (const polynomial<T> & poly)
 // Entry point
 int main(int argc, char ** argv)
 {
+//#pragma begin_instrument 10
     // are we testing using a genetic algorithm?
     bool ga_testing = false;
     
@@ -698,6 +702,6 @@ int main(int argc, char ** argv)
         cout << "\nfftbench (Std. C++) run time: " << run_time << "\n\n";
     
     cout.flush();
-    
+//#pragma end_instrument 
     return 0;
 }

@@ -225,6 +225,7 @@ void planetpv (double epoch[2], int np, double pv[2][3])
     double t, da, dl, de, dp, di, doh, dmu, arga, argl, am;
     double ae, dae, ae2, at, r, v, si2, xq, xp, tl, xsw;
     double xcw, xm2, xf, ci2, xms, xmc, xpxq2, x, y, z;
+#pragma begin_instrument 10
 
     // time: julian millennia since j2000.
     t = ((epoch[0] - J2000) + epoch[1]) / JMILLENIA;
@@ -264,7 +265,6 @@ void planetpv (double epoch[2], int np, double pv[2][3])
     ae = am + de * sin(am);
     k  = 0;
     
-#pragma begin_instrument 10
     while (1)
     {
         dae = (am - ae + de * sin(ae)) / (1.0 - de * cos(ae));
@@ -274,7 +274,6 @@ void planetpv (double epoch[2], int np, double pv[2][3])
         if ((k >= 10) || (fabs(dae) < 1e-12))
             break;
     }
-#pragma end_instrument
 
     // true anomaly.
     ae2 = ae / 2.0;
@@ -311,6 +310,7 @@ void planetpv (double epoch[2], int np, double pv[2][3])
     x = v * ((-1.0 + 2.0 * xp * xp) * xms + xpxq2 * xmc);
     y = v * (( 1.0 - 2.0 * xq * xq ) * xmc - xpxq2 * xms);
     z = v * (2.0 * ci2 * (xp * xms + xq * xmc));
+#pragma end_instrument
 
     // rotate to equatorial.
     pv[1][0] = x;
@@ -344,6 +344,7 @@ int main(int argc, char ** argv)
     double pv[2][3];
     double position[8][3];
     bool   ga_testing = false;
+#pragma begin_instrument 15
     
     // do we have verbose output?
     if (argc > 1)
@@ -388,5 +389,6 @@ int main(int argc, char ** argv)
     
     fflush(stdout);
     
+#pragma end_instrument
     return 0;
 }
